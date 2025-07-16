@@ -1,14 +1,8 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+use bevy::prelude::*;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub struct StdinPlugin;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+impl Plugin for StdinPlugin {
+    fn build(&self, app: &mut App) {
     }
 }
