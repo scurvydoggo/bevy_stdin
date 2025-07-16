@@ -1,1 +1,4 @@
 /target
+
+# TODO: Add CI so we can keep this up to date rather than ignore it
+Cargo.lock
