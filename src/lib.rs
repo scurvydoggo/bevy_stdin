@@ -1,8 +1,68 @@
 use bevy::prelude::*;
+use bevy::input::ButtonInput;
+use crossbeam_channel::{bounded, Receiver};
+use crossterm::event::{self, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use std::thread;
+use std::time::Duration;
 
 pub struct StdinPlugin;
 
+#[derive(Event, Deref)]
+struct StdinEvent(KeyEvent);
+
+#[derive(Resource, Deref)]
+struct StreamReceiver(Receiver<StdinEvent>);
+
 impl Plugin for StdinPlugin {
     fn build(&self, app: &mut App) {
+        app.insert_resource(ButtonInput::<KeyCode>::default());
+        app.insert_resource(ButtonInput::<KeyModifiers>::default());
+        app.add_systems(Startup, setup);
+        app.add_systems(PreUpdate, read_stream);
+    }
+}
+
+// This system sets up the channel and writes to it from a stdin polling thread
+fn setup(mut commands: Commands) {
+    let (tx, rx) = bounded::<StdinEvent>(1);
+    commands.insert_resource(StreamReceiver(rx));
+
+    // Raw mode is necessary to read key events without waiting for Enter
+    crossterm::terminal::enable_raw_mode().expect("Failed to enable raw mode");
+
+    thread::spawn(move || {
+        let timeout = Duration::from_millis(100);
+        loop {
+            if event::poll(timeout).expect("Failed to poll stdin") {
+                let e = event::read().expect("Failed to read stdin event");
+                if let event::Event::Key(key) = e {
+                    tx.send(StdinEvent(key)).expect("Failed to transmit key event");
+                }
+            }
+        }
+    });
+}
+
+// This system reads from the channel and submits key events to bevy
+fn read_stream(
+    stdin_keys: Res<StreamReceiver>,
+    mut key_input: ResMut<ButtonInput<KeyCode>>,
+    mut modifier_input: ResMut<ButtonInput<KeyModifiers>>,
+) {
+    key_input.clear();
+    modifier_input.clear();
+
+    for key in stdin_keys.try_iter() {
+        match key.kind {
+            KeyEventKind::Press => {
+                key_input.press(key.code);
+                modifier_input.press(key.modifiers);
+            }
+            KeyEventKind::Release => {
+                key_input.release(key.code);
+                modifier_input.release(key.modifiers);
+            }
+            KeyEventKind::Repeat => {}
+        }
     }
 }
