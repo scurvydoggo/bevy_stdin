@@ -3,8 +3,11 @@
 //!
 //! Input is exposed via resources: `ButtonInput<KeyCode>` and `ButtonInput<KeyModifiers>`.
 
-use bevy::prelude::*;
-use bevy::input::ButtonInput;
+use bevy::{
+    prelude::*,
+    app::AppExit,
+    input::ButtonInput
+};
 use crossbeam_channel::{bounded, Receiver};
 use crossterm::event::{self, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use std::thread;
@@ -25,6 +28,7 @@ impl Plugin for StdinPlugin {
         app.insert_resource(ButtonInput::<KeyModifiers>::default());
         app.add_systems(Startup, setup);
         app.add_systems(PreUpdate, read_stream);
+        app.add_systems(Update, ctrl_c_handler);
     }
 }
 
@@ -70,5 +74,16 @@ fn read_stream(
             }
             KeyEventKind::Repeat => {}
         }
+    }
+}
+
+/// Monitor for Ctrl+C and shut down bevy
+fn ctrl_c_handler(
+    key: Res<ButtonInput<KeyCode>>,
+    modifier: Res<ButtonInput<KeyModifiers>>,
+    mut exit: EventWriter<AppExit>,
+) {
+    if modifier.just_pressed(KeyModifiers::CONTROL) && key.just_pressed(KeyCode::Char('c')) {
+        exit.write(AppExit::Success);
     }
 }
