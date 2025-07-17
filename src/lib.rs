@@ -1,3 +1,9 @@
+//! Terminal input for the [Bevy game engine](https://bevy.org/), using
+//! [crossterm](https://docs.rs/crossterm/latest/crossterm/) for cross-platform support.
+//!
+//! Input is exposed via resources: `ButtonInput<KeyCode>` and `ButtonInput<KeyModifiers>`.
+
+
 use bevy::prelude::*;
 use bevy::input::ButtonInput;
 use crossbeam_channel::{bounded, Receiver};
@@ -5,6 +11,7 @@ use crossterm::event::{self, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use std::thread;
 use std::time::Duration;
 
+/// Adds terminal input to an App
 pub struct StdinPlugin;
 
 #[derive(Event, Deref)]
