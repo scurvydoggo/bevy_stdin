@@ -3,7 +3,6 @@
 //!
 //! Input is exposed via resources: `ButtonInput<KeyCode>` and `ButtonInput<KeyModifiers>`.
 
-
 use bevy::prelude::*;
 use bevy::input::ButtonInput;
 use crossbeam_channel::{bounded, Receiver};
@@ -56,8 +55,8 @@ fn read_stream(
     mut key_input: ResMut<ButtonInput<KeyCode>>,
     mut modifier_input: ResMut<ButtonInput<KeyModifiers>>,
 ) {
-    key_input.clear();
-    modifier_input.clear();
+    key_input.reset_all();
+    modifier_input.reset_all();
 
     for key in stdin_keys.try_iter() {
         match key.kind {
