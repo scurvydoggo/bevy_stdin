@@ -9,9 +9,12 @@ Terminal input for the [Bevy game engine](https://bevy.org/), using [crossterm](
 
 Input is exposed via resources: `ButtonInput<KeyCode>` and `ButtonInput<KeyModifiers>`.
 
-Example:
+## Example usage
 
 ```rust
+use bevy::prelude::*;
+use crossterm::event::{KeyCode, KeyModifiers};
+
 fn terminal_system(
     key: Res<ButtonInput<KeyCode>>,
     modifiers: Res<ButtonInput<KeyModifiers>>,
