@@ -19,7 +19,7 @@ fn terminal_system(
     key: Res<ButtonInput<KeyCode>>,
     modifiers: Res<ButtonInput<KeyModifiers>>,
 ) {
-    if key.justPressed(KeyCode::Char('c')) && modifiers.justPressed(KeyModifiers::CONTROL) {
+    if modifiers.justPressed(KeyModifiers::CONTROL) && key.justPressed(KeyCode::Char('a')) {
     }
 }
 ```
