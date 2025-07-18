@@ -16,6 +16,13 @@ use std::time::Duration;
 /// Adds terminal input to an App
 pub struct StdinPlugin;
 
+/// Restore terminal state on shutdown
+impl Drop for StdinPlugin {
+    fn drop(&mut self) {
+        crossterm::terminal::disable_raw_mode().expect("Failed to disable raw mode");
+    }
+}
+
 #[derive(Event, Deref)]
 struct StdinEvent(KeyEvent);
 
@@ -28,7 +35,7 @@ impl Plugin for StdinPlugin {
         app.insert_resource(ButtonInput::<KeyModifiers>::default());
         app.add_systems(Startup, setup);
         app.add_systems(PreUpdate, read_stream);
-        app.add_systems(Update, ctrl_c_handler);
+        app.add_systems(Update, ctrl_c);
     }
 }
 
@@ -78,12 +85,12 @@ fn read_stream(
 }
 
 /// Monitor for Ctrl+C and shut down bevy
-fn ctrl_c_handler(
+fn ctrl_c(
     key: Res<ButtonInput<KeyCode>>,
     modifier: Res<ButtonInput<KeyModifiers>>,
-    mut exit: EventWriter<AppExit>,
+    mut ev_exit: EventWriter<AppExit>,
 ) {
     if modifier.just_pressed(KeyModifiers::CONTROL) && key.just_pressed(KeyCode::Char('c')) {
-        exit.write(AppExit::Success);
+        ev_exit.write(AppExit::Success);
     }
 }
